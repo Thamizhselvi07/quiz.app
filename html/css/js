@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bilingual Science Quiz (EN/TA) — Beginner • Intermediate • Advanced</title>
+  <style>
+    :root{
+      --bg:#0f1226; --card:#15193a; --muted:#9aa3b2; --text:#eef2ff; --accent:#7c94ff; --accent-2:#43e6b0; --danger:#ff6b6b; --ok:#50d890;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:radial-gradient(1200px 700px at 10% -10%, #232a5f 0%, transparent 60%),linear-gradient(180deg,#0f1226 0%, #0b0e20 100%); color:var(--text);
+    }
+    .container{max-width:980px;margin:32px auto;padding:16px}
+    .app{
+      background:linear-gradient(180deg,rgba(21,25,58,.95),rgba(21,25,58,.85)); border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    .row{display:flex;gap:16px;flex-wrap:wrap}
+    .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .title{font-weight:800; letter-spacing:.3px; font-size:22px}
+    .subtitle{color:var(--muted); font-size:13px}
+    .badge{padding:6px 10px; border-radius:999px; background:rgba(124,148,255,.15); color:#cfd6ff; border:1px solid rgba(124,148,255,.35); font-weight:600;}
+    .card{background:var(--card); border:1px solid rgba(255,255,255,.06); padding:16px; border-radius:16px}
+    .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; align-items:end}
+    .control label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+    select, button, .segmented, .input{
+      width:100%; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:#0f1330; color:var(--text); padding:12px 14px; font-size:14px;
+    }
+    .segmented{display:flex; padding:4px; gap:4px; background:#0c1027}
+    .segmented button{flex:1; background:transparent; border:none; padding:10px; color:var(--muted); cursor:pointer; border-radius:10px; transition:.2s}
+    .segmented button.active{background:linear-gradient(180deg,#1b2150,#141a44); color:#fff; border:1px solid rgba(124,148,255,.35)}
+    .primary{background:linear-gradient(180deg,#7c94ff,#6b80ff); border:1px solid rgba(124,148,255,.55); cursor:pointer; font-weight:700}
+    .primary:disabled{opacity:.6; cursor:not-allowed}
+    .ghost{background:transparent; border:1px dashed rgba(255,255,255,.15)}
+    .hidden{display:none}
+    .question-card{margin-top:16px}
+    .qtext{font-size:18px; font-weight:700; line-height:1.4;}
+    .qtext small{display:block; color:var(--muted); font-weight:600; margin-top:6px}
+    .options{display:grid; gap:10px; margin-top:14px}
+    .option{display:flex; align-items:center; gap:10px; background:linear-gradient(180deg,#141943,#0e1335); border:1px solid rgba(255,255,255,.08); padding:12px 14px; border-radius:12px; cursor:pointer; transition:.15s}
+    .option:hover{transform:translateY(-1px); border-color:rgba(124,148,255,.45)}
+    .option input{accent-color:var(--accent); width:18px; height:18px}
+    .option.correct{border-color:rgba(80,216,144,.65); box-shadow:0 0 0 2px rgba(80,216,144,.18) inset}
+    .option.incorrect{border-color:rgba(255,107,107,.65); box-shadow:0 0 0 2px rgba(255,107,107,.18) inset}
+    .actions{display:flex; gap:10px; margin-top:14px}
+    .progress{height:10px; background:#0b0f29; border-radius:999px; border:1px solid rgba(255,255,255,.06); overflow:hidden}
+    .progress > span{display:block;height:100%;background:linear-gradient(90deg,#7c94ff,#43e6b0); width:0%}
+    .stats{display:flex; gap:12px; flex-wrap:wrap; color:#c9d2ff}
+    .stat{padding:8px 10px; border-radius:10px; background:#0c1130; border:1px solid rgba(255,255,255,.08); font-weight:700}
+    .toast{position:fixed; right:16px; bottom:16px; background:#0e1438; border:1px solid rgba(124,148,255,.45); color:#eaf0ff; padding:14px 16px; border-radius:16px; box-shadow:0 16px 40px rgba(0,0,0,.4);}
+    .toast h4{margin:0 0 6px 0}
+    .center{display:flex;align-items:center;justify-content:center}
+    .footer{margin-top:14px; color:var(--muted); font-size:12px}
+    .pill{padding:6px 8px;border-radius:999px;background:#0c1130;border:1px solid rgba(255,255,255,.08);color:#c9d2ff}
+    @media (max-width:540px){.title{font-size:18px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="app" role="application" aria-label="Bilingual Science Quiz">
+      <div class="header">
+        <div>
+          <div class="title">🔬 Bilingual Science Quiz</div>
+          <div class="subtitle">Beginner • Intermediate • Advanced • English / தமிழ்</div>
+        </div>
+        <span class="badge" id="streakBadge" aria-live="polite">Streak: 0🔥</span>
+      </div>
+
+      <div class="card">
+        <div class="controls">
+          <div class="control">
+            <label>Difficulty / கடினம்</label>
+            <div class="segmented" id="levelTabs" role="tablist" aria-label="Select difficulty">
+              <button role="tab" aria-selected="true" data-level="Beginner" class="active">Beginner</button>
+              <button role="tab" aria-selected="false" data-level="Intermediate">Intermediate</button>
+              <button role="tab" aria-selected="false" data-level="Advanced">Advanced</button>
+            </div>
+          </div>
+          <div class="control">
+            <label>Language / மொழி</label>
+            <div class="segmented" id="langTabs" role="tablist" aria-label="Select language">
+              <button role="tab" aria-selected="true" data-lang="en" class="active">English</button>
+              <button role="tab" aria-selected="false" data-lang="ta">தமிழ்</button>
+              <button role="tab" aria-selected="false" data-lang="both">Both / இரண்டும்</button>
+            </div>
+          </div>
+          <div class="control">
+            <label>Questions per session</label>
+            <select id="countSelect">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+          <div class="control">
+            <button id="startBtn" class="primary">▶ Start Quiz</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="quizCard" class="card question-card hidden" aria-live="polite"></div>
+
+      <div id="resultCard" class="card hidden"></div>
+
+      <div class="footer">Tip: Add your own <span class="pill">questions.json</span> (1000+ items) at the site root. This app will auto‑load it. If not found, it uses built‑in sample items.</div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="assertive">
+    <h4>🎉 Great streak!</h4>
+    <div>3 correct answers in a row. Keep it up!</div>
+  </div>
+
+  <script>
+    // --- Data loading: tries /questions.json then falls back to SAMPLE_QUESTIONS ---
+    const SAMPLE_QUESTIONS = [
+      // Beginner (4)
+      {level:"Beginner", q_en:"What is the SI unit of force?", q_ta:"வலுவின் SI அலகு எது?", options_en:["Newton","Joule","Pascal","Watt"], options_ta:["நியூட்டன்","ஜூல்","பாஸ்கல்","வாட்ட்"], answer:0},
+      {level:"Beginner", q_en:"Which planet is known as the Red Planet?", q_ta:"சிவப்பு கோளாக அழைக்கப்படும் கோள் எது?", options_en:["Earth","Mars","Jupiter","Venus"], options_ta:["பூமி","செவ்வாய்","குரு","சுக்கிரன்"], answer:1},
+      {level:"Beginner", q_en:"Water boils at what temperature (at 1 atm)?", q_ta:"நீர் எத்தனை வெப்பநிலையில் கொதிக்கும்? (1 atm)", options_en:["90°C","100°C","110°C","120°C"], options_ta:["90°C","100°C","110°C","120°C"], answer:1},
+      {level:"Beginner", q_en:"What gas do plants produce during photosynthesis?", q_ta:"ஒளிச்சேர்க்கையின் போது தாவரங்கள் உற்பத்தி செய்யும் வாயு எது?", options_en:["Oxygen","Carbon dioxide","Nitrogen","Hydrogen"], options_ta:["ஆக்சிஜன்","கார்பன் டையாக்சைடு","நைட்ரஜன்","ஹைட்ரஜன்"], answer:0},
+      // Intermediate (4)
+      {level:"Intermediate", q_en:"Which vitamin is produced in the skin when exposed to sunlight?", q_ta:"சூரியஒளி பட்டால் தோலில் உருவாகும் வைட்டமின் எது?", options_en:["Vitamin A","Vitamin C","Vitamin D","Vitamin K"], options_ta:["வைட்டமின் A","வைட்டமின் C","வைட்டமின் D","வைட்டமின் K"], answer:2},
+      {level:"Intermediate", q_en:"Which law states that current is directly proportional to voltage?", q_ta:"மின்னோட்டம் மின்னழுத்தத்திற்கு நேர்மாறு சார்பு என்று கூறும் சட்டம் எது?", options_en:["Faraday's Law","Ohm's Law","Lenz's Law","Kirchhoff's Law"], options_ta:["ஃபரடே சட்டம்","ஓம் சட்டம்","லென்ஸ் சட்டம்","கிர்சாஃப் சட்டம்"], answer:1},
+      {level:"Intermediate", q_en:"The powerhouse of the cell is?", q_ta:"செல்லின் மின் நிலையம் எது?", options_en:["Nucleus","Mitochondria","Ribosome","Chloroplast"], options_ta:["நியூக்ளியஸ்","மைட்டோகாண்ட்ரியா","ரைபோசோம்","குளோரோபிளாஸ்ட்"], answer:1},
+      {level:"Intermediate", q_en:"What is the chemical formula of table salt?", q_ta:"உணவு உப்பின் இரசாயன வாய்பாடு எது?", options_en:["NaCl","KCl","Na2CO3","CaCO3"], options_ta:["NaCl","KCl","Na₂CO₃","CaCO₃"], answer:0},
+      // Advanced (4)
+      {level:"Advanced", q_en:"Which particle mediates the electromagnetic force?", q_ta:"மின்காந்த விசையை இடமாற்றி செய்கின்ற துகள் எது?", options_en:["Gluon","Photon","W boson","Graviton"], options_ta:["குளூயான்","போட்டான்","டபிள்யூ போசான்","கிராவிட்டான்"], answer:1},
+      {level:"Advanced", q_en:"What is the SI unit of electrical capacitance?", q_ta:"மின்திறனின் SI அலகு எது?", options_en:["Ohm","Tesla","Henry","Farad"], options_ta:["ஓம்","டெஸ்லா","ஹென்றி","ஃபராட்"], answer:3},
+      {level:"Advanced", q_en:"Which process produces ATP in mitochondria?", q_ta:"மைட்டோகாண்ட்ரியாவில் ATP உருவாகும் செயல் எது?", options_en:["Glycolysis","Oxidative phosphorylation","Fermentation","Calvin cycle"], options_ta:["கிளைக்கோலிசிஸ்","ஆக்சிடேட்டிவ் பாஸ்பரிலேஷன்","காய்ச்சி","கல்வின் சுழற்சி"], answer:1},
+      {level:"Advanced", q_en:"What is the pH of a 1×10⁻³ M HCl solution (approx.)?", q_ta:"1×10⁻³ M HCl கரையின் pH (தோராயமாக) எவ்வளவு?", options_en:["1","2","3","4"], options_ta:["1","2","3","4"], answer:2}
+    ];
+
+    async function loadQuestions(){
+      try{
+        const res = await fetch('questions.json',{cache:'no-store'});
+        if(!res.ok) throw new Error('no questions.json');
+        const data = await res.json();
+        // Normalize potential external shape
+        return data.map((q,i)=>({
+          level:q.level||q.difficulty||'Beginner',
+          q_en:q.question_en||q.q_en||q.en||q.question||'',
+          q_ta:q.question_ta||q.q_ta||q.ta||'',
+          options_en:q.options_en||q.en_options||q.options?.en||q.options||[],
+          options_ta:q.options_ta||q.ta_options||q.options?.ta||q.options||[],
+          answer: typeof q.answerIndex==='number'? q.answerIndex : (typeof q.answer==='number'? q.answer : (Array.isArray(q.correct)? q.correct[0] : 0)),
+          id:q.id || `q_${i}`
+        }));
+      }catch(_){
+        return SAMPLE_QUESTIONS;
+      }
+    }
+
+    // --- State ---
+    const state = {
+      all:[], pool:[], idx:0, score:0, streak:0, lang:'en', level:'Beginner', count:10, answered:false,
+    };
+
+    // --- UI Elements ---
+    const quizCard = document.getElementById('quizCard');
+    const resultCard = document.getElementById('resultCard');
+    const toast = document.getElementById('toast');
+    const startBtn = document.getElementById('startBtn');
+    const countSelect = document.getElementById('countSelect');
+    const levelTabs = document.getElementById('levelTabs');
+    const langTabs = document.getElementById('langTabs');
+    const streakBadge = document.getElementById('streakBadge');
+
+    // Helpers
+    function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
+    function sampleLevel(all, level){ return shuffle(all.filter(q=>q.level===level)).slice(0, state.count) }
+    function setActive(tabWrap, btn){
+      [...tabWrap.children].forEach(b=>{b.classList.remove('active'); b.setAttribute('aria-selected','false')});
+      btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+    }
+    function showToast(){ toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2200) }
+
+    // Render Question
+    function render(){
+      const total = state.pool.length; const q = state.pool[state.idx];
+      if(!q){ quizCard.classList.add('hidden'); return }
+      quizCard.classList.remove('hidden'); resultCard.classList.add('hidden');
+
+      const progress = Math.round(((state.idx)/total)*100);
+      const qTextEn = q.q_en; const qTextTa = q.q_ta;
+      const showEn = state.lang==='en' || state.lang==='both';
+      const showTa = state.lang==='ta' || state.lang==='both';
+
+      const opts = q.options_en.map((opt, i)=>({
+        en: q.options_en[i] ?? '',
+        ta: q.options_ta[i] ?? '',
+        i
+      }));
+
+      quizCard.innerHTML = `
+        <div class="row" style="justify-content:space-between; align-items:center; gap:8px;">
+          <div class="stats">
+            <span class="stat">Level: ${q.level}</span>
+            <span class="stat">Q ${state.idx+1} / ${total}</span>
+            <span class="stat">Score: ${state.score}</span>
+          </div>
+          <span class="badge">${state.lang==='both'?'EN · TA': (state.lang==='en'?'EN':'TA')}</span>
+        </div>
+        <div class="progress" aria-label="Progress"><span style="width:${progress}%"></span></div>
+        <div class="qtext" style="margin-top:12px">
+          ${showEn? `<div>${qTextEn}</div>`:''}
+          ${showTa? `<small>${qTextTa}</small>`:''}
+        </div>
+        <form id="optForm" class="options" aria-label="Options">
+          ${opts.map(o=>`
+            <label class="option" data-index="${o.i}">
+              <input type="radio" name="opt" value="${o.i}" />
+              <span>
+                ${showEn? `<div>${o.en}</div>`:''}
+                ${showTa? `<small>${o.ta}</small>`:''}
+              </span>
+            </label>
+          `).join('')}
+        </form>
+        <div class="actions">
+          <button id="checkBtn" class="primary">Check</button>
+          <button id="skipBtn" class="ghost">Skip</button>
+          <button id="nextBtn" class="primary hidden">Next ▶</button>
+        </div>
+      `;
+
+      const optForm = document.getElementById('optForm');
+      const checkBtn = document.getElementById('checkBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const skipBtn = document.getElementById('skipBtn');
+
+      state.answered = false;
+
+      checkBtn.onclick = (e)=>{
+        e.preventDefault();
+        if(state.answered) return;
+        const choice = optForm.querySelector('input[name="opt"]:checked');
+        if(!choice){
+          checkBtn.animate([{transform:'scale(1)'},{transform:'scale(.98)'},{transform:'scale(1)'}],{duration:200});
+          return;
+        }
+        const sel = parseInt(choice.value,10);
+        [...optForm.querySelectorAll('.option')].forEach(l=>l.classList.remove('correct','incorrect'));
+        const correct = (sel === q.answer);
+        const chosenLabel = optForm.querySelector(`label[data-index="${sel}"]`);
+        const correctLabel = optForm.querySelector(`label[data-index="${q.answer}"]`);
+        chosenLabel.classList.add(correct? 'correct':'incorrect');
+        correctLabel.classList.add('correct');
+        state.answered = true;
+        if(correct){
+          state.score++; state.streak++; if(state.streak>0 && state.streak%3===0){ showToast(); }
+        }else{ state.streak = 0; }
+        updateStreak();
+        nextBtn.classList.remove('hidden'); checkBtn.classList.add('hidden');
+      };
+
+      nextBtn.onclick = (e)=>{ e.preventDefault(); goNext(); };
+      skipBtn.onclick = (e)=>{ e.preventDefault(); state.streak=0; updateStreak(); goNext(); };
+
+      // Keyboard: Enter to check, N to next
+      quizCard.onkeydown = (ev)=>{
+        if(ev.key==='Enter'){ ev.preventDefault(); checkBtn.click(); }
+        if(ev.key.toLowerCase()==='n'){ ev.preventDefault(); if(!nextBtn.classList.contains('hidden')) nextBtn.click(); }
+      };
+    }
+
+    function goNext(){
+      state.idx++;
+      if(state.idx>=state.pool.length){ return showResults(); }
+      render();
+    }
+
+    function showResults(){
+      quizCard.classList.add('hidden');
+      const total = state.pool.length; const pct = Math.round((state.score/total)*100);
+      resultCard.classList.remove('hidden');
+      resultCard.innerHTML = `
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <div class="title">📊 Session Result</div>
+          <span class="badge">${state.level} • ${state.lang==='both'?'EN·TA':state.lang.toUpperCase()}</span>
+        </div>
+        <div class="progress" style="margin:8px 0 12px"><span style="width:${pct}%"></span></div>
+        <div class="row">
+          <div class="card" style="flex:1">
+            <div class="qtext">Score: ${state.score} / ${total}</div>
+            <div class="subtitle">Accuracy: ${pct}%</div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="qtext">Best Streak: <span id="bestStreak">${state.streak}</span></div>
+            <div class="subtitle">🎉 Streaks of 3 trigger a celebration</div>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:16px">
+          <button id="againBtn" class="primary">↻ Try Again</button>
+          <button id="homeBtn" class="ghost">🏠 Back</button>
+        </div>
+      `;
+      document.getElementById('againBtn').onclick = ()=> startQuiz();
+      document.getElementById('homeBtn').onclick = ()=>{
+        resultCard.classList.add('hidden');
+        document.querySelector('.card').scrollIntoView({behavior:'smooth'});
+      };
+    }
+
+    function updateStreak(){ streakBadge.textContent = `Streak: ${state.streak}🔥`; }
+
+    // Start Quiz
+    function startQuiz(){
+      state.count = parseInt(countSelect.value,10);
+      state.pool = sampleLevel(state.all, state.level);
+      state.idx = 0; state.score = 0; state.streak = 0; updateStreak();
+      render();
+    }
+
+    // Event wiring
+    levelTabs.addEventListener('click',(e)=>{
+      const btn = e.target.closest('button[data-level]'); if(!btn) return; state.level = btn.dataset.level; setActive(levelTabs, btn);
+    });
+    langTabs.addEventListener('click',(e)=>{
+      const btn = e.target.closest('button[data-lang]'); if(!btn) return; state.lang = btn.dataset.lang; setActive(langTabs, btn);
+    });
+    startBtn.addEventListener('click', startQuiz);
+
+    // Boot
+    (async function init(){
+      state.all = await loadQuestions();
+      // Validate bilingual lengths
+      state.all = state.all.filter(q => Array.isArray(q.options_en) && Array.isArray(q.options_ta) && q.options_en.length===q.options_ta.length && typeof q.answer==='number');
+    })();
+  </script>
+</body>
+</html>
